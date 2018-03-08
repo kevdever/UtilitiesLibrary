@@ -33,6 +33,7 @@ namespace UtilitiesLibrary.Hashing
     public static class StringHasher
     {
         private static readonly List<int> PrimesList = new List<int> { 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 49, 53, 59, 61, 67, 71, 73, 77, 79, 83, 89, 91, 97, 101, 103, 107, 109, 113, 119, 121, 127, 131, 133, 137, 139, 143, 149, 151, 157, 161, 163, 167, 169, 173, 179 };
+        private static readonly int NumPrimes = PrimesList.Count;
 
         /// <summary>
         /// Hashes a string into an integer that will be consistent between calls, but not necessarily between systems.  Uniqueness is not guaranteed, nor is this suitable for cryptographic uses.
@@ -49,9 +50,9 @@ namespace UtilitiesLibrary.Hashing
                 int hash = 0;
                 foreach (char c in str)
                 {
-                    if (nextPrimeIndex >= str.Length)
+                    hash *= c * PrimesList[nextPrimeIndex];
+                    if (++nextPrimeIndex >= NumPrimes)
                         nextPrimeIndex = 0;
-                    hash *= c * PrimesList[nextPrimeIndex++];
                 }
                 return hash;
             }
