@@ -59,5 +59,26 @@ namespace UtilitiesLibrary.IEnumerableExtensions
                 yield return subset;
             }
         }
+
+        /// <summary>
+        /// Split a collection into subsets of size batchSize.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="batchSize"></param>
+        /// <returns></returns>
+        public static IEnumerable<IEnumerable<T>> SplitIntoBatchesOfSize<T>(this IEnumerable<T> source, int batchSize)
+        {
+            if (batchSize <= 0)
+                throw new ArgumentOutOfRangeException("batchsize must be greater than zero");
+
+            var numTaken = 0;
+            while (source.Skip(numTaken).Any())
+            {
+                var subset = source.Skip(numTaken).Take(batchSize);
+                numTaken += subset.Count();
+                yield return subset;
+            }
+        }
     }
 }
