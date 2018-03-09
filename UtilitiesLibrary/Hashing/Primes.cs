@@ -42,7 +42,7 @@ namespace UtilitiesLibrary.Hashing
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        private static int HashStringInsecure(string str)
+        public static int HashStringInsecure(string str)
         {
             int nextPrimeIndex = 0;
             unchecked

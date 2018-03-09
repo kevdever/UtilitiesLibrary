@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Exceptions\ExceptionHelpers.cs" />
     <Compile Include="Hashing\Primes.cs" />
+    <Compile Include="IEnumerableExtensions\Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
