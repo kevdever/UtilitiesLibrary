@@ -43,6 +43,10 @@
     <Compile Include="Exceptions\ExceptionHelpers.cs" />
     <Compile Include="Hashing\Primes.cs" />
     <Compile Include="IEnumerableExtensions\Extensions.cs" />
+    <Compile Include="IEnumerableExtensions\RandomNumbers.cs" />
+    <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Math\MathConvenience.cs" />
+    <Compile Include="Networking\ConnectivityHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
