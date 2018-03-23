@@ -36,6 +36,8 @@ namespace UtilitiesLibrary.Exceptions
         /// <returns></returns>
         public static string ConcatInnerExceptions(Exception e)
         {
+            if (e is null)
+                return null;
             var str = $"{e.GetType().ToString()}: Message: {e.Message}.  *** Stack trace: {e.StackTrace}. ***  ";
 
             if (e.InnerException != null)
