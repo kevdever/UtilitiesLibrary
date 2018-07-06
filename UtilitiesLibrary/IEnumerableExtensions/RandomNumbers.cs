@@ -33,7 +33,28 @@ namespace UtilitiesLibrary.IEnumerableExtensions
 {
     public class RandomNumbers
     {
-        public static IEnumerable<int> GetRandomNumbers(int numValues, int maxVal)
+        /// <summary>
+        /// Returns a sequence of {numValues} between 0 and maxVal. Whether duplicates are allowed in the resultset is determined by the allowRepetition flag.
+        /// </summary>
+        /// <param name="numValues"></param>
+        /// <param name="maxVal"></param>
+        /// <param name="allowRepetition"></param>
+        /// <returns></returns>
+        public static IEnumerable<int> GetRandomNumbers(int numValues, int maxVal, bool allowRepetition = false)
+        {
+            if (allowRepetition)
+                return GetRandomNumbersRepetitionOk(numValues, maxVal);
+            else
+                return GetUniqueRandomNumbers(numValues, maxVal);
+        }
+
+        /// <summary>
+        /// Returns a sequence of {numValues} between 0 and maxVal. The output will not contain duplicates.
+        /// </summary>
+        /// <param name="numValues"></param>
+        /// <param name="maxVal"></param>
+        /// <returns></returns>
+        private static IEnumerable<int> GetUniqueRandomNumbers(int numValues, int maxVal)
         {
             var rand = new Random();
             var yieldedValues = new HashSet<int>();
@@ -42,11 +63,26 @@ namespace UtilitiesLibrary.IEnumerableExtensions
             while (counter < numValues)
             {
                 var r = rand.Next(maxVal);
+                //if the test below returns false, then the item was already returned, so skip it and return to the loop.
                 if (yieldedValues.Add(r))
                 {
                     counter++;
                     yield return r;
                 }
+            }
+        }
+        /// <summary>
+        /// Returns a sequence of {numValues} between 0 and maxVal. The output may contain duplicates.
+        /// </summary>
+        /// <param name="numValues"></param>
+        /// <param name="maxVal"></param>
+        /// <returns></returns>
+        private static IEnumerable<int> GetRandomNumbersRepetitionOk(int numValues, int maxVal)
+        {
+            var rand = new Random();
+            for (int i = 0; i < numValues; i++)
+            {
+                yield return rand.Next(maxVal);
             }
         }
     }
