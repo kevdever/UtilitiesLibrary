@@ -34,61 +34,73 @@ namespace UtilitiesLibrary.IEnumerableExtensions
     public static class Extensions
     {
         /// <summary>
-        /// Split a collection into numChunks subsets
+        /// Split a collection into {numChunks} as a collection of subsets.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="batchSize"></param>
+        /// <param name="source">An IEnumerable</param>
+        /// <param name="numChunks">The desired number of batches/chunks. Must be positive.</param>
         /// <returns></returns>
         public static IEnumerable<IEnumerable<T>> SplitIntoNChunks<T>(this IEnumerable<T> source, int numChunks)
         {
-            if (source is null) throw new ArgumentNullException("source");
             if (numChunks <= 0) throw new ArgumentOutOfRangeException("batchSize", "The batchSize parameter must be a positive value.");
-            if (numChunks == 1)
-            {
-                yield return source;
-                yield break;
-            }
 
-            var chunkSize = (int)Math.Ceiling(source.Count() / (double)numChunks);
-            var numTaken = 0;
-            while (source.Skip(numTaken).Any())
-            {
-                var subset = source.Skip(numTaken).Take(chunkSize);
-                numTaken += subset.Count();
-                yield return subset;
-            }
+            var numItems = source.Count();
+
+            //get the chunksize NumItems/NumChunks, but force floating-point math so that the truncation and result is explicit.
+            //If numItems/numChunks is not a whole number, ensure that the number of batches is respected by forcing the chunkSize to the ceiling
+            //e.g., for a collection of size 7 with a desired batch size of 2, you want collections of size 3,3,1. (If you floor it, then items are lost or the number of batches grows)
+            var chunkSize = (int)(Math.Ceiling(numItems / (double)numChunks));
+            //As a failsafe, if the chunkSize is less than one, then set it to one so that the loop in the called method below can complete normally.
+            if (chunkSize < 1)
+                chunkSize = 1;
+
+            return source.SplitIntoBatchesOfSize(chunkSize);
         }
 
         /// <summary>
-        /// Split a collection into subsets of size batchSize.
+        /// Split a collection into subsets of size {batchSize}.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
-        /// <param name="batchSize"></param>
-        /// <returns></returns>
+        /// <param name="batchSize">The desired number of items per batch. Must be a positive integer.</param>
+        /// <returns>A collection of collections of max size batchSize</returns>
         public static IEnumerable<IEnumerable<T>> SplitIntoBatchesOfSize<T>(this IEnumerable<T> source, int batchSize)
         {
-            if (batchSize <= 0)
-                throw new ArgumentOutOfRangeException("batchsize must be greater than zero");
+            if (batchSize < 1)
+                throw new ArgumentOutOfRangeException("batchSize", "batchSize must be a positive integer.");
+
+            var numItems = source.Count();
 
             var numTaken = 0;
-            while (source.Skip(numTaken).Any())
+            while (numTaken + batchSize < numItems) //If taking the next {chunkSize} elements will exceed the size of the source collection, then end the loop and return the remainder
             {
-                var subset = source.Skip(numTaken).Take(batchSize);
-                numTaken += subset.Count();
-                yield return subset;
+                yield return source.Skip(numTaken).Take(batchSize);
+                numTaken += batchSize;
             }
+            yield return source.Skip(numTaken);
         }
 
         #region Shuffle
         //source: https://stackoverflow.com/a/5807238/2655263
         //The license for the methods in this Shuffle region flow through from the source linked above.
+        /// <summary>
+        /// Shuffle a collection randomly, returning a new collection.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <returns>A new shuffled collection</returns>
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
         {
             return source.Shuffle(new Random());
         }
 
+        /// <summary>
+        /// Shuffle a collection randomly, returning a new collection. This overload allows you to provide your own instance of Random.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="rng">An instance of Random</param>
+        /// <returns>A new shuffled collection</returns>
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source, Random rng)
         {
             if (source == null) throw new ArgumentNullException("source");
@@ -97,15 +109,23 @@ namespace UtilitiesLibrary.IEnumerableExtensions
             return source.ShuffleIterator(rng);
         }
 
-        private static IEnumerable<T> ShuffleIterator<T>(
-            this IEnumerable<T> source, Random rng)
+        /// <summary>
+        /// Shuffle a collection randomly using the provided Random instance, returning a new collection.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="rng"></param>
+        /// <returns>A new shuffled collection</returns>
+        private static IEnumerable<T> ShuffleIterator<T>(this IEnumerable<T> source, Random rng)
         {
             var buffer = source.ToList();
             for (int i = 0; i < buffer.Count; i++)
             {
+                //get a random (unused) index (between the counter i and the end of the array)
                 int j = rng.Next(i, buffer.Count);
+                //return the item at that index
                 yield return buffer[j];
-
+                //since j >= i, and j was just spent and counter i will be incremented (so the item at i might never otherwise be hit), place whatever was at i into j's slot.
                 buffer[j] = buffer[i];
             }
         }
